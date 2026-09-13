@@ -1,0 +1,967 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>NACHTMANN Sales Dashboard</title></head><body>
+
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --surface-2:   #f2f2ef;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --ink-muted:   #898781;
+    --line:        #e1e0d9;
+    --line-strong: #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --shadow:      0 1px 2px rgba(11,11,11,0.04), 0 8px 24px -16px rgba(11,11,11,0.18);
+
+    --be:          #2a78d6;
+    --be-soft:     rgba(42,120,214,0.14);
+    --kh:          #eb6834;
+    --kh-soft:     rgba(235,104,52,0.14);
+
+    --good:        #0ca30c;
+    --good-bg:     rgba(12,163,12,0.12);
+    --critical:    #d03b3b;
+    --critical-bg: rgba(208,59,59,0.12);
+    --warning:     #b7791f;
+
+    --frozen:      #eda100;
+    --frozen-bg:   rgba(237,161,0,0.16);
+    --rrp:         #8558d9;
+    --rrp-soft:    rgba(133,88,217,0.14);
+
+    --tooltip-bg:  #1c1c1a;
+    --tooltip-ink: #fcfcfb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --surface-2:   #212120;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --ink-muted:   #898781;
+      --line:        #2c2c2a;
+      --line-strong: #383835;
+      --border:      rgba(255,255,255,0.10);
+      --shadow:      0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+
+      --be:          #3987e5;
+      --be-soft:     rgba(57,135,229,0.18);
+      --kh:          #d95926;
+      --kh-soft:     rgba(217,89,38,0.18);
+
+      --good:        #0ca30c;
+      --good-bg:     rgba(12,163,12,0.16);
+      --critical:    #e66767;
+      --critical-bg: rgba(230,103,103,0.16);
+      --warning:     #fab219;
+
+      --frozen:      #c98500;
+      --frozen-bg:   rgba(201,133,0,0.20);
+      --rrp:         #a482e8;
+      --rrp-soft:    rgba(164,130,232,0.18);
+
+      --tooltip-bg:  #fcfcfb;
+      --tooltip-ink: #14140f;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:        #0d0d0d;
+    --surface:     #1a1a19;
+    --surface-2:   #212120;
+    --ink:         #ffffff;
+    --ink-2:       #c3c2b7;
+    --ink-muted:   #898781;
+    --line:        #2c2c2a;
+    --line-strong: #383835;
+    --border:      rgba(255,255,255,0.10);
+    --shadow:      0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+
+    --be:          #3987e5;
+    --be-soft:     rgba(57,135,229,0.18);
+    --kh:          #d95926;
+    --kh-soft:     rgba(217,89,38,0.18);
+
+    --good:        #0ca30c;
+    --good-bg:     rgba(12,163,12,0.16);
+    --critical:    #e66767;
+    --critical-bg: rgba(230,103,103,0.16);
+    --warning:     #fab219;
+    --rrp:         #a482e8;
+    --rrp-soft:    rgba(164,130,232,0.18);
+
+    --tooltip-bg:  #fcfcfb;
+    --tooltip-ink: #14140f;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 64px; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px 24px;
+    padding-bottom: 20px; margin-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .brand h1 {
+    font-size: 22px; font-weight: 800; letter-spacing: -0.01em; margin: 0;
+    text-wrap: balance;
+  }
+  .brand .sub { color: var(--ink-2); font-size: 13.5px; }
+  .meta { text-align: right; color: var(--ink-muted); font-size: 12.5px; line-height: 1.5; }
+  .meta b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- section headers ---------- */
+  .section { margin-top: 40px; }
+  .section-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .section-head h2 {
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-muted); margin: 0;
+  }
+  .section-head .note { font-size: 12.5px; color: var(--ink-muted); }
+
+  /* ---------- metric toggle chips ---------- */
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip-btn {
+    font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 100px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--ink-muted);
+    cursor: pointer; transition: background 120ms ease, color 120ms ease;
+  }
+  .chip-btn.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+
+  /* ---------- KPI tiles ---------- */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;
+  }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 16px 14px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  }
+  .kpi .label { font-size: 11.5px; color: var(--ink-muted); font-weight: 600; letter-spacing: 0.02em; }
+  .kpi .value { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
+  .kpi .value small { font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+  .kpi .delta { font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .kpi .delta.up { color: var(--good); }
+  .kpi .delta.down { color: var(--critical); }
+  .kpi .delta.flat { color: var(--ink-muted); }
+  .kpi .sub { font-size: 12px; color: var(--ink-muted); }
+  .kpi .sub2 { font-size: 11.5px; color: var(--ink-muted); }
+
+  /* ---------- client cards ---------- */
+  .client-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .client-grid { grid-template-columns: 1fr; } }
+  .client-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 18px 18px 16px; min-width: 0;
+  }
+  .client-card .head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+  .client-name { display: flex; align-items: center; gap: 9px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .client-name .code { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+  .client-name .terms { font-size: 11.5px; color: var(--ink-muted); }
+  .yoy-chip {
+    font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 100px;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+  .yoy-chip.up { color: var(--good); background: var(--good-bg); }
+  .yoy-chip.down { color: var(--critical); background: var(--critical-bg); }
+
+  .client-stats { display: flex; gap: 22px; margin: 12px 2px 6px; flex-wrap: wrap; }
+  .client-stats .stat .n { font-size: 19px; font-weight: 700; }
+  .client-stats .stat .l { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+
+  .chart-box { margin: 10px -4px 4px; position: relative; }
+  .chart-box svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .legend-row { display: flex; gap: 16px; margin-top: 6px; padding: 0 2px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); }
+  .legend-swatch { width: 14px; height: 3px; border-radius: 2px; }
+  .legend-swatch.dashed {
+    height: 0; border-top: 2px dashed var(--ink-muted); width: 14px;
+  }
+
+  .status-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+  }
+  .status-label { font-size: 12px; color: var(--ink-muted); font-weight: 600; }
+  .status-pill {
+    font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 100px;
+  }
+  .status-pill.paid { color: var(--good); background: var(--good-bg); }
+  .status-pill.owed { color: var(--critical); background: var(--critical-bg); }
+  .status-pill.over { color: var(--be); background: var(--be-soft); }
+  .progress-track { height: 6px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 4px; }
+  .status-figures { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ink-muted); margin-top: 5px; }
+  .status-figures b { color: var(--ink-2); font-weight: 700; }
+  .stock-line { font-size: 12px; color: var(--ink-muted); margin-top: 10px; }
+  .stock-line b { color: var(--ink-2); font-weight: 700; }
+
+  /* ---------- yearly bar section ---------- */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 20px 20px 16px;
+  }
+  .yearly-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+  /* ---------- SKU section ---------- */
+  .sku-layout { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 14px; align-items: start; }
+  @media (max-width: 900px) { .sku-layout { grid-template-columns: 1fr; } }
+  .rank-row { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; }
+  .rank-num { font-size: 11px; color: var(--ink-muted); width: 16px; flex: none; font-weight: 700; }
+  .rank-sku { font-size: 11px; color: var(--ink-muted); width: 46px; flex: none; }
+  .rank-label { font-size: 12.5px; color: var(--ink-2); width: 128px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-bar-track { flex: 1; height: 18px; border-radius: 4px; background: var(--surface-2); overflow: hidden; display: flex; min-width: 0; }
+  .rank-seg { height: 100%; }
+  .rank-seg.be { background: var(--be); }
+  .rank-seg.kh { background: var(--kh); }
+  .rank-seg.frozen { background: var(--frozen); }
+  .rank-seg.rrp { background: var(--rrp); }
+  .rank-total { font-size: 12.5px; font-weight: 700; width: 78px; text-align: right; flex: none; }
+  .zero-badge {
+    display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: 0.02em;
+    padding: 1px 5px; border-radius: 4px; margin-left: 6px; color: var(--critical); background: var(--critical-bg);
+    vertical-align: middle;
+  }
+  .callout {
+    font-size: 12.5px; color: var(--ink-2); margin-bottom: 12px; line-height: 1.5;
+  }
+  .callout b { color: var(--ink); font-weight: 700; }
+
+  table.sku-table { width: 100%; border-collapse: collapse; font-size: 12.8px; }
+  .table-scroll { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table.sku-table th {
+    text-align: right; font-size: 10.8px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+    color: var(--ink-muted); padding: 10px 12px; background: var(--surface-2);
+    border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0;
+  }
+  table.sku-table th:first-child, table.sku-table th:nth-child(2), table.sku-table th:nth-child(3) { text-align: left; }
+  table.sku-table td {
+    padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap;
+    color: var(--ink-2);
+  }
+  table.sku-table td:first-child, table.sku-table td:nth-child(2), table.sku-table td:nth-child(3) { text-align: left; color: var(--ink); }
+  table.sku-table td:nth-child(2) { font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  table.sku-table td:nth-child(3) { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  table.sku-table tbody tr:last-child td { border-bottom: none; }
+  table.sku-table tbody tr:hover td { background: var(--surface-2); }
+  .badge {
+    display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.02em;
+    padding: 2px 6px; border-radius: 5px; margin-left: 6px; vertical-align: middle;
+  }
+  .badge.b1 { background: rgba(235,104,52,0.16); color: var(--kh); }
+  .badge.zero { color: var(--ink-muted); }
+  .cell-debt.has { color: var(--critical); font-weight: 700; }
+
+  /* ---------- margin panel ---------- */
+  .nodata { color: var(--ink-muted); font-style: italic; }
+
+  /* ---------- footer ---------- */
+  .footnotes {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .footnotes .f { font-size: 12px; color: var(--ink-muted); display: flex; gap: 8px; }
+  .footnotes .f .mark { flex: none; color: var(--ink-2); font-weight: 700; }
+
+  /* ---------- tooltip ---------- */
+  .viz-tooltip {
+    position: fixed; pointer-events: none; z-index: 50;
+    background: var(--tooltip-bg); color: var(--tooltip-ink);
+    font-size: 12px; padding: 8px 10px; border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity 120ms ease;
+    white-space: nowrap; line-height: 1.5;
+  }
+  .viz-tooltip.show { opacity: 1; }
+  .viz-tooltip .t-title { font-weight: 700; margin-bottom: 2px; }
+  .viz-tooltip .t-row { display: flex; align-items: center; gap: 6px; }
+  .viz-tooltip .t-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <h1>NACHTMANN &middot; Отчёт по продажам</h1>
+      <span class="sub">Клиенты BE &amp; KH</span>
+    </div>
+    <div class="meta">
+      Сформировано <b>13.09.2026</b>
+    </div>
+  </div>
+
+  <!-- ================= CONTEXT ================= -->
+  <div class="section" style="margin-top:0;">
+    <div class="panel" style="border-color:var(--warning); background:linear-gradient(0deg, var(--surface), var(--surface));">
+      <div class="section-head" style="margin-bottom:10px;">
+        <h2 style="color:var(--warning);">Контекст — прочитать перед выводами</h2>
+      </div>
+      <ul style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:9px; font-size:12.8px; color:var(--ink-2); line-height:1.5;">
+        <li><b>Аналитика по SKU корректна только начиная с июня 2026.</b> До этого не было ассортиментной матрицы, товара было недостаточно, а аккуратная отгрузка без промо ведётся всего несколько последних месяцев — более ранние периоды не пригодны для анализа по конкретным товарам (бестселлеры, тренды, замороженный капитал).</li>
+        <li><b>Падение оборота BE — не признак ухудшения продаж, а смена модели.</b> Последние 2 года BE получал от нас промо-товар, и дополнительно на этот промо-товар сам BE давал ещё и свою собственную скидку конечному покупателю &mdash; это искусственно раздувало их оборот прошлых лет. В 2026 году промо BE не отгружается: нет механизма возврата непроданного промо-товара и нет контроля продажи промо в границах календарного месяца, совпадающих с нашим отчётным периодом.</li>
+        <li><b>У BE на сегодня есть выкупленный сток, который занижает видимый нами оборот.</b> В апреле 2026 BE выкупил у нас товар по старой (более низкой) дистрибьюторской цене примерно на 20 000 AZN. Из-за этого текущие продажи BE в наших отчётах выглядят заниженными, хотя по факту их реальный оборот (перепродажа конечному покупателю) лучше &mdash; этот выкупленный товар мы больше никак не контролируем и не видим его дальнейшее движение.</li>
+        <li><b>Условия у BE и KH сегодня всё ещё неравные.</b> BE продолжает давать собственную скидку на наш товар конечному покупателю, а KH следует нашей официальной ценовой политике без дополнительной скидки. Поэтому пока нельзя однозначно утверждать, что NACHTMANN у KH &laquo;неактуален&raquo; &mdash; сравнивать результаты клиентов напрямую пока некорректно.</li>
+        <li><b>Рост продаж KH весной 2026 — не показатель роста самого KH.</b> В этот период проведена проверка (ревизия), выявлена недостача за несколько лет, которую KH оплатил — это разово увеличило оплаты/оборот, не связано с реальным ростом продаж в точках.</li>
+        <li><b>У BE и KH были принципиально разные условия по промо.</b> У BE в 2025 был промо-товар — отсюда высокий оборот прошлых лет. У KH промо не было вообще (не хватало промо-аллокации), из-за чего продаж там почти не было. В 2026 году у KH впервые появился более-менее полноценный товар и +1 новая точка продаж.</li>
+        <li><b>Количество точек продаж:</b> KH — 2 точки, BE — 4 точки.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= KPI ================= -->
+  <div class="section">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">Оборот 2026 (Янв&ndash;Авг), по цене отгрузки</div>
+        <div class="value">96 648<small>,53 AZN</small></div>
+        <div class="delta down">▼ -12,1% к Янв&ndash;Авг 2025</div>
+        <div class="sub2">≈ 138 069 AZN по РРП (расчётно, ÷0,7)</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Продано, шт &middot; Янв&ndash;Авг 2026 (весь период)</div>
+        <div class="value">710<small> шт</small></div>
+        <div class="sub">BE 571 + KH 139</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Баланс расчётов (на 13.09.2026)</div>
+        <div class="value" style="font-size:16px; font-weight:700; color:var(--critical)">BE должны нам 3 271,80</div>
+        <div class="delta" style="color:var(--be)">Мы должны KH 98,70 AZN</div>
+      </div>
+      <div class="kpi" style="grid-column: span 2;">
+        <div class="label">Остаток на складах клиентов &middot; 3 оценки</div>
+        <div style="display:flex; gap:22px; flex-wrap:wrap; margin-top:2px;">
+          <div>
+            <div style="font-size:20px; font-weight:800; line-height:1.1;">67 289<small style="font-size:12px; font-weight:600; color:var(--ink-muted);">,80</small></div>
+            <div class="sub2">по цене отгрузки &middot; BE 41 027,00 + KH 26 262,80</div>
+          </div>
+          <div>
+            <div style="font-size:20px; font-weight:800; line-height:1.1; color:var(--rrp);">98 362<small style="font-size:12px; font-weight:600; color:var(--ink-muted);">,00</small></div>
+            <div class="sub2">по РРП &middot; BE 58 610,00 + KH 39 752,00</div>
+          </div>
+          <div>
+            <div style="font-size:20px; font-weight:800; line-height:1.1; color:var(--ink-2);">24 782<small style="font-size:12px; font-weight:600; color:var(--ink-muted);">,21</small></div>
+            <div class="sub2">по себестоимости &middot; BE 14 529,26 + KH 10 252,95</div>
+          </div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Бестселлер SKU (по накладным в DEBTS)</div>
+        <div class="value" style="font-size:16px; font-weight:700;">Plate rectangular 42cm</div>
+        <div class="sub">10 шт · 977,20 AZN (цена отгрузки) · BE+KH</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CLIENTS ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Клиенты</h2>
+      <span class="note">Продажи, AZN &middot; 2026 (сплошная) на фоне 2025 (пунктир)</span>
+    </div>
+    <div class="client-grid">
+
+      <div class="client-card" id="card-be">
+        <div class="head">
+          <div class="client-name">
+            <span class="dot" style="background:var(--be)"></span>
+            <span class="code">BE</span>
+            <span class="terms">Baku Electronics</span>
+          </div>
+          <span class="yoy-chip down">▼ -27,1% YoY (Янв&ndash;Авг)</span>
+        </div>
+        <div class="client-stats">
+          <div class="stat"><div class="n mono">72 739,72</div><div class="l">AZN, 2026 (Янв&ndash;Авг)</div></div>
+          <div class="stat"><div class="n mono">99 796,00</div><div class="l">AZN, 2025 (Янв&ndash;Авг)</div></div>
+          <div class="stat"><div class="n mono">158</div><div class="l">шт продано, июнь&ndash;сент. 2026</div></div>
+        </div>
+        <div class="chart-box"><svg id="chart-be" viewBox="0 0 640 210"></svg></div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--be)"></span>2026</span>
+          <span class="legend-item"><span class="legend-swatch dashed"></span>2025</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Долг (не весь оборот на графике выше!)</span>
+          <span class="status-pill owed">BE должны нам 3 271,80 AZN</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:67.5%; background:var(--warning)"></div></div>
+        <div class="status-figures"><span>оплачено <b class="mono">6 794,90</b></span><span>к оплате <b class="mono">10 066,70</b></span></div>
+        <div class="sub2" style="margin-top:2px;">Долг = «к оплате» минус «оплачено» по уже отгруженному товару &mdash; см. также про выкупленный сток BE в блоке «Контекст» вверху страницы.</div>
+        <div class="stock-line">На складе клиента (567 шт непроданных): <b class="mono">41 027,00</b> по цене отгрузки &middot; <b class="mono">58 610,00</b> по РРП &middot; <b class="mono">14 529,26</b> по себестоимости, AZN</div>
+      </div>
+
+      <div class="client-card" id="card-kh">
+        <div class="head">
+          <div class="client-name">
+            <span class="dot" style="background:var(--kh)"></span>
+            <span class="code">KH</span>
+            <span class="terms">Kontakt Home</span>
+          </div>
+          <span class="yoy-chip up">▲ +135,6% YoY (Янв&ndash;Авг)</span>
+        </div>
+        <div class="client-stats">
+          <div class="stat"><div class="n mono">23 908,81</div><div class="l">AZN, 2026 (Янв&ndash;Авг)</div></div>
+          <div class="stat"><div class="n mono">10 149,72</div><div class="l">AZN, 2025 (Янв&ndash;Авг)</div></div>
+          <div class="stat"><div class="n mono">33</div><div class="l">шт продано, июнь&ndash;сент. 2026</div></div>
+        </div>
+        <div class="chart-box"><svg id="chart-kh" viewBox="0 0 640 210"></svg></div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--kh)"></span>2026</span>
+          <span class="legend-item"><span class="legend-swatch dashed"></span>2025</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Оплата</span>
+          <span class="status-pill over">Переплата &mdash; мы должны KH</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%; background:var(--be)"></div></div>
+        <div class="status-figures"><span>оплачено <b class="mono">2 046,75</b></span><span>к оплате <b class="mono">1 948,05</b></span></div>
+        <div class="stock-line">На складе клиента (358 шт непроданных): <b class="mono">26 262,80</b> по цене отгрузки &middot; <b class="mono">39 752,00</b> по РРП &middot; <b class="mono">10 252,95</b> по себестоимости, AZN</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MARGIN ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Себестоимость и маржа</h2>
+      <span class="note">Только там, где восстановлено &mdash; см. модель РРП&minus;30% ниже</span>
+    </div>
+    <div class="panel">
+      <div class="callout">
+        Модель BE/KH &mdash; прямая оптовая схема (не консигнация-комиссия, как FAVORIT): клиент платит нам
+        <b>&laquo;цену отгрузки&raquo; = РРП минус 30%</b> (кроме старых отгрузок по позициям вне матрицы, где действовали
+        разовые условия). Себестоимость известна для <b>всех 46 SKU</b> каталога, включая позиции без единой продажи.
+        <br><br>
+        <b>Про РРП везде на этой странице:</b> это &laquo;идеальная&raquo; (каталожная) розничная цена по 1С, а не факт продажной
+        цены на полке &mdash; клиенты регулярно меняют цену (свои скидки/промо), и реальный РРП в моменте отследить невозможно.
+        Используйте РРП как ориентир, не как точный факт.
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="label">Оборот (не долг!) &middot; июнь&ndash;сент. 2026, учтено по себестоимости</div>
+          <div class="value">12 014<small>,80 AZN</small></div>
+          <div class="sub">BE 10 066,70 AZN оборота + KH 1 948,10 AZN оборота</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Себестоимость проданного &middot; июнь&ndash;сент. 2026</div>
+          <div class="value">4 481<small>,14 AZN</small></div>
+          <div class="sub">BE 3 743,66 + KH 737,48</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Маржа &middot; июнь&ndash;сент. 2026</div>
+          <div class="value" style="color:var(--good)">7 533<small>,66 AZN</small></div>
+          <div class="delta up">62,7% от учтённого оборота</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Себестоимость и маржа, 2025</div>
+          <div class="value nodata" style="font-size:16px;">не выводится</div>
+          <div class="sub">за 2025 год учёт продаж по SKU вёлся некорректно, а BE продавал товар, отгруженный в разные периоды промо &mdash; маржинальность за 2025 год определить сложно</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= YEARLY ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Продажи по годам</h2>
+      <span class="note">по цене отгрузки &middot; 2026 &mdash; Янв&ndash;Авг (Сен&ndash;Дек ещё не наступили)</span>
+    </div>
+    <div class="panel">
+      <div class="legend-row" style="margin-bottom:6px;">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--be); height:8px; border-radius:2px;"></span>BE</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--kh); height:8px; border-radius:2px;"></span>KH</span>
+      </div>
+      <div class="yearly-chart"><svg id="chart-yearly" viewBox="0 0 1000 300"></svg></div>
+    </div>
+  </div>
+
+  <!-- ================= MONTHLY BY CLIENT ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Продажи по месяцам &middot; по каждому клиенту</h2>
+      <span class="note">по цене отгрузки, AZN &middot; 2025 vs 2026, помесячно</span>
+    </div>
+    <div class="client-grid">
+      <div class="panel">
+        <div style="font-size:12px; color:var(--ink-muted); font-weight:600; margin-bottom:10px;">
+          <span class="dot" style="background:var(--be); display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px;"></span>BE &middot; Baku Electronics
+        </div>
+        <div class="table-scroll"><table class="sku-table" id="monthly-be-table"></table></div>
+      </div>
+      <div class="panel">
+        <div style="font-size:12px; color:var(--ink-muted); font-weight:600; margin-bottom:10px;">
+          <span class="dot" style="background:var(--kh); display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px;"></span>KH &middot; Kontakt Home
+        </div>
+        <div class="table-scroll"><table class="sku-table" id="monthly-kh-table"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MATRIX COVERAGE ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Матрица и остатки по SKU</h2>
+      <span class="note">Продажи &mdash; июнь&ndash;сентябрь 2026 &middot; остатки и цены &mdash; на 13.09.2026</span>
+    </div>
+    <div class="panel">
+      <div class="callout">
+        В объединённом каталоге BE+KH &mdash; <b>46 SKU</b>: <b>41</b> в текущей ассортиментной матрице и
+        <b>5</b> старых позиций вне матрицы. Из 41 матричного SKU за отслеживаемый период хотя бы раз продались
+        <b>27 (66%)</b> &mdash; остальные 14 пока без единой продажи (см. таблицу и замороженный капитал ниже).
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="progress-track" style="flex:1; height:10px;"><div class="progress-fill" style="width:66%; background:var(--good)"></div></div>
+        <div style="font-size:12.5px; font-weight:700; white-space:nowrap; color:var(--ink-2);">27 / 41 SKU матрицы (66%)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SKU ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Топ SKU по обороту</h2>
+      <span class="note">июнь&ndash;сентябрь 2026</span>
+    </div>
+    <div class="sku-layout">
+      <div class="panel">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+          <div style="font-size:12px; color:var(--ink-muted); font-weight:600;">Топ&nbsp;10 по обороту, AZN</div>
+          <div class="chip-row" id="sku-metric-toggle">
+            <button class="chip-btn active" data-metric="ship">По цене отгрузки</button>
+            <button class="chip-btn" data-metric="rrp">По РРП</button>
+          </div>
+        </div>
+        <div id="sku-ranking"></div>
+        <div class="legend-row" style="margin-top:4px;">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--be); height:8px; border-radius:2px;"></span>BE</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--kh); height:8px; border-radius:2px;"></span>KH</span>
+        </div>
+      </div>
+      <div class="table-scroll" style="max-height:480px; overflow-y:auto;">
+        <table class="sku-table" id="sku-table">
+          <thead>
+            <tr>
+              <th>#</th><th>SKU</th><th>Название</th><th>Статус</th><th>BE шт</th><th>KH шт</th>
+              <th>Оборот (отгрузка), AZN</th><th>Оборот (РРП), AZN</th><th>Ост. BE</th><th>Ост. KH</th>
+              <th>Остаток, AZN</th><th>Себес./ед, AZN</th><th>Маржа, AZN</th>
+            </tr>
+          </thead>
+          <tbody id="sku-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FROZEN CAPITAL ================= -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Замороженный капитал &middot; где какой сток лежит</h2>
+      <span class="note">SKU без единой продажи за июнь&ndash;сентябрь 2026 &middot; остаток по цене отгрузки, на 13.09.2026</span>
+    </div>
+    <div class="panel">
+      <div class="callout">
+        <b>17 SKU</b> из объединённого каталога BE+KH отгружены, но <b>ни разу не проданы</b> за отслеживаемый период &mdash; в них заморожено
+        <b id="frozen-total-ship">&mdash;</b> AZN по цене отгрузки (≈ <b id="frozen-total-rrp">&mdash;</b> AZN по РРП, и
+        <b>7 067,76 AZN</b> по себестоимости &mdash; BE 2 434,40 + KH 4 633,36).
+        У каждой позиции ниже показано, сколько лежит у BE и сколько у KH.
+      </div>
+      <div id="frozen-ranking"></div>
+    </div>
+  </div>
+
+  <div class="footnotes">
+    <div class="f"><span class="mark">*</span>YoY считается по сопоставимому периоду Янв&ndash;Авг 2025 vs Янв&ndash;Авг 2026 (не полный 2025 год против части 2026-го) &mdash; так корректнее сравнивать, пока 2026 год не завершён.</div>
+    <div class="f"><span class="mark">*</span>Блоки «Матрица», «SKU», «Себестоимость и маржа» и «Замороженный капитал» отражают накопленный итог по всем накладным за июнь&ndash;сентябрь 2026 &mdash; это единственный период с точным учётом по SKU (см. блок «Контекст» вверху страницы).</div>
+    <div class="f"><span class="mark">*</span>Данные по годам (2024&ndash;2026) на уровне клиента &mdash; на уровне клиента в целом, без разбивки по SKU и по точкам продаж. Показатель KH за 2024&nbsp;год (11 480 AZN) воспроизведён как есть &mdash; в исходнике это ровные одинаковые суммы по месяцам, похоже на плейсхолдер, а не помесячный факт; не исправлялось.</div>
+    <div class="f"><span class="mark">*</span>Штучные (Кол-во, ед.) показатели верны только для периода, реально покрытого накладными &mdash; более ранние периоды (до появления текущей ассортиментной матрицы, когда промо-товар продавался бесконтрольно круглый год) не пригодны для SKU-анализа и намеренно не восстанавливаются оценочно.</div>
+  </div>
+
+</div>
+
+<div class="viz-tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var months = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
+
+  var data = {
+    be: {
+      y2025: [8947.00,15515.00,23538.00,8101.00,13860.00,13196.00,7590.00,9049.00,15287.00,14617.00,19127.00,9881.00],
+      y2026: [7629.70,6924.40,16511.90,24542.01,7065.01,2640.40,4154.50,3271.80,null,null,null,null],
+      color: "var(--be)"
+    },
+    kh: {
+      y2025: [1312.00,1613.40,2246.00,699.35,1428.00,1566.00,476.94,808.03,414.00,1098.27,2926.00,2577.40],
+      y2026: [1638.70,1995.70,2914.75,6776.55,8635.06,546.65,1000.30,401.10,null,null,null,null],
+      color: "var(--kh)"
+    }
+  };
+
+  var yearly = {
+    years: ["2024","2025","2026 (Янв-Авг)"],
+    be: [113055.00, 158708.00, 72739.72],
+    kh: [11480.00, 17165.39, 23908.81]
+  };
+
+  /* full merged BE+KH catalog (46 SKU), продажи июнь-сент 2026, остатки/цены на 13.09.2026 */
+  var SKU_ALL = [
+    {sku:81412,name:'Plate rectangular 42 cm',be:9,kh:1,ship:977.2,rrp:1410,beRemain:13,khRemain:15,remainAzn:2616.6,cost:36.94,margin:607.8,hasCost:true,vne:false},
+    {sku:97632,name:'Square platter 21 cm Set/2',be:13,kh:0,ship:900.9,rrp:1287,beRemain:37,khRemain:9,remainAzn:3118.5,cost:24.15,margin:586.95,hasCost:true,vne:false},
+    {sku:103767,name:'Hot Beverage Glass Set/2',be:17,kh:0,ship:844.9,rrp:1207,beRemain:35,khRemain:0,remainAzn:1739.5,cost:18.43,margin:531.59,hasCost:true,vne:false},
+    {sku:103747,name:'Softdrink Glass Set/4',be:10,kh:3,ship:819.7,rrp:1183,beRemain:27,khRemain:12,remainAzn:2450.7,cost:23.72,margin:511.34,hasCost:true,vne:false},
+    {sku:81399,name:'Plate rectangular 28 cm',be:15,kh:3,ship:774.9,rrp:1116,beRemain:37,khRemain:6,remainAzn:1853.6,cost:16.06,margin:485.82,hasCost:true,vne:false},
+    {sku:89207,name:'Whisky tumbler Set/4',be:11,kh:1,ship:761.6,rrp:1092,beRemain:27,khRemain:8,remainAzn:2207.1,cost:23.72,margin:476.96,hasCost:true,vne:false},
+    {sku:77809,name:'Cake Plate/Chip and Dip 32 cm',be:4,kh:1,ship:719.6,rrp:1040,beRemain:16,khRemain:8,remainAzn:3427.2,cost:53.57,margin:451.75,hasCost:true,vne:false},
+    {sku:101969,name:'Pitcher',be:6,kh:1,ship:592.9,rrp:854,beRemain:26,khRemain:3,remainAzn:2461.9,cost:37.77,margin:328.51,hasCost:true,vne:false},
+    {sku:92074,name:'Pitcher',be:5,kh:2,ship:586.6,rrp:854,beRemain:9,khRemain:13,remainAzn:1806,cost:31.78,margin:364.14,hasCost:true,vne:false},
+    {sku:89994,name:'Charger Plate 32 cm Set/2',be:6,kh:0,ship:546,rrp:780,beRemain:16,khRemain:15,remainAzn:2747.5,cost:31.28,margin:358.32,hasCost:true,vne:false},
+    {sku:89694,name:'Bowl square 12 cm Set/2',be:11,kh:1,ship:511,rrp:732,beRemain:24,khRemain:8,remainAzn:1355.2,cost:15.53,margin:324.64,hasCost:true,vne:false},
+    {sku:89208,name:'Longdrink Set/4',be:8,kh:0,ship:509.6,rrp:728,beRemain:20,khRemain:10,remainAzn:1897,cost:23.72,margin:319.84,hasCost:true,vne:false},
+    {sku:101907,name:'Square platter 14cm Set/2',be:9,kh:2,ship:504.7,rrp:737,beRemain:24,khRemain:9,remainAzn:1497.3,cost:17.79,margin:309.01,hasCost:true,vne:false},
+    {sku:100694,name:'Shot Glass Set/4',be:7,kh:0,ship:367.5,rrp:525,beRemain:9,khRemain:14,remainAzn:1168.3,cost:20.04,margin:227.22,hasCost:true,vne:false},
+    {sku:92076,name:'Whisky tumbler Set/4',be:4,kh:1,ship:354.9,rrp:510,beRemain:11,khRemain:9,remainAzn:1423.8,cost:26.96,margin:220.1,hasCost:true,vne:false},
+    {sku:98036,name:'Salad plate 23 cm Set/2',be:6,kh:0,ship:327.6,rrp:468,beRemain:22,khRemain:9,remainAzn:1661.1,cost:18.49,margin:216.66,hasCost:true,vne:false},
+    {sku:101966,name:'Goblet tall Set/4',be:4,kh:0,ship:316.4,rrp:452,beRemain:26,khRemain:14,remainAzn:3105.2,cost:31.47,margin:190.52,hasCost:true,vne:false},
+    {sku:103748,name:'Liqueur Goblet Set/4',be:4,kh:1,ship:259.7,rrp:375,beRemain:0,khRemain:26,remainAzn:1292.2,cost:22.22,margin:148.6,hasCost:true,vne:false},
+    {sku:104252,name:'Bowl Set/2 16.5 cm',be:0,kh:5,ship:242.9,rrp:355,beRemain:0,khRemain:4,remainAzn:193.2,cost:15.78,margin:164,hasCost:true,vne:false},
+    {sku:97631,name:'Dip bowl square 8,5 cm Set/4',be:1,kh:3,ship:224.7,rrp:336,beRemain:8,khRemain:8,remainAzn:912.8,cost:18.2,margin:151.9,hasCost:true,vne:false},
+    {sku:77672,name:'Bowl 25 cm',be:2,kh:3,ship:212.1,rrp:315,beRemain:2,khRemain:1,remainAzn:129.5,cost:15.23,margin:135.95,hasCost:true,vne:false},
+    {sku:77688,name:'Bowl 30 cm',be:2,kh:1,ship:160.3,rrp:234,beRemain:21,khRemain:1,remainAzn:1197.7,cost:16.77,margin:109.99,hasCost:true,vne:false},
+    {sku:100831,name:'Cocktail Glass Set/2',be:2,kh:0,ship:116.2,rrp:166,beRemain:6,khRemain:0,remainAzn:348.6,cost:20.7,margin:74.8,hasCost:true,vne:false},
+    {sku:90023,name:'Serving Set 5pcs',be:0,kh:1,ship:102.2,rrp:154,beRemain:32,khRemain:0,remainAzn:3449.6,cost:35.15,margin:67.05,hasCost:true,vne:false},
+    {sku:102253,name:'Bowl round 15cm Set/2',be:2,kh:0,ship:95.2,rrp:136,beRemain:4,khRemain:0,remainAzn:190.4,cost:19.66,margin:55.88,hasCost:true,vne:false},
+    {sku:90026,name:'Serving Set 3pcs',be:0,kh:1,ship:69.3,rrp:104,beRemain:32,khRemain:12,remainAzn:3161.2,cost:22.39,margin:46.91,hasCost:true,vne:false},
+    {sku:92075,name:'Longdrink Set/4',be:0,kh:1,ship:69.3,rrp:102,beRemain:1,khRemain:1,remainAzn:140.7,cost:26.95,margin:42.35,hasCost:true,vne:false},
+    {sku:103771,name:'Krujka Noblesse 250 ml 2pcs [ВНЕ МАТРИЦЫ]',be:0,kh:1,ship:46.85,rrp:67,beRemain:0,khRemain:4,remainAzn:187.38,cost:21.84,margin:25.06,hasCost:true,vne:true},
+    {sku:104248,name:'Champagne Glass Set/4',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:8,remainAzn:623.7,cost:29.22,margin:0,hasCost:true,vne:false},
+    {sku:102086,name:'Goblet small Set/4',be:0,kh:0,ship:0,rrp:0,beRemain:11,khRemain:0,remainAzn:870.1,cost:27.09,margin:0,hasCost:true,vne:false},
+    {sku:92953,name:'Badə dəsti Palais Champagne Taper 1pcs [ВНЕ МАТРИЦЫ]',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:3,remainAzn:41.95,cost:5.57,margin:0,hasCost:true,vne:true},
+    {sku:105766,name:'Serving Set 4 Pcs',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:9,remainAzn:682.5,cost:27.5,margin:0,hasCost:true,vne:false},
+    {sku:95635,name:'Beer mug',be:0,kh:0,ship:0,rrp:0,beRemain:2,khRemain:15,remainAzn:670.6,cost:14.15,margin:0,hasCost:true,vne:false},
+    {sku:80729,name:'Vase 28 cm',be:0,kh:0,ship:0,rrp:0,beRemain:12,khRemain:16,remainAzn:4751.6,cost:45.65,margin:0,hasCost:true,vne:false},
+    {sku:104251,name:'Tumbler Set/4',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:0,remainAzn:0,cost:25.67,margin:0,hasCost:true,vne:false},
+    {sku:104239,name:'Stakan dəsti Noblesse mavi 2pcs [ВНЕ МАТРИЦЫ]',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:11,remainAzn:608.76,cost:55.3,margin:0,hasCost:true,vne:true},
+    {sku:81398,name:'Square plate 28 cm',be:0,kh:0,ship:0,rrp:0,beRemain:16,khRemain:12,remainAzn:1638,cost:22.21,margin:0,hasCost:true,vne:false},
+    {sku:105767,name:'Plate 22Cm/2 Pc',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:8,remainAzn:410.2,cost:19.2,margin:0,hasCost:true,vne:false},
+    {sku:82088,name:'Vase 20 cm',be:0,kh:0,ship:0,rrp:0,beRemain:20,khRemain:7,remainAzn:1544.2,cost:13.74,margin:0,hasCost:true,vne:false},
+    {sku:98035,name:'Salad plate 23 cm Set/2',be:0,kh:0,ship:0,rrp:0,beRemain:12,khRemain:0,remainAzn:655.2,cost:23.37,margin:0,hasCost:true,vne:false},
+    {sku:106161,name:'Plate 32 cm Set/2 ETHNO',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:12,remainAzn:1033.2,cost:32.13,margin:0,hasCost:true,vne:false},
+    {sku:103323,name:'Badə dəsti Palais Cocktail 1pcs [ВНЕ МАТРИЦЫ]',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:2,remainAzn:50.41,cost:7.95,margin:0,hasCost:true,vne:true},
+    {sku:92952,name:'Badə dəsti Palais White Large 1pcs [ВНЕ МАТРИЦЫ]',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:1,remainAzn:14,cost:8.19,margin:0,hasCost:true,vne:true},
+    {sku:97633,name:'Serving Set 4pcs',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:11,remainAzn:947.1,cost:32.43,margin:0,hasCost:true,vne:false},
+    {sku:78538,name:'Two tier tray large 32 + 23 cm',be:0,kh:0,ship:0,rrp:0,beRemain:9,khRemain:16,remainAzn:4633.3,cost:72.19,margin:0,hasCost:true,vne:false},
+    {sku:104249,name:'Hot Beverage Mug Set/2',be:0,kh:0,ship:0,rrp:0,beRemain:0,khRemain:8,remainAzn:375.2,cost:18.34,margin:0,hasCost:true,vne:false}
+  ];
+  var sku = SKU_ALL;
+  var frozen = SKU_ALL.filter(function(r){ return r.be+r.kh===0 && r.remainAzn>0; })
+    .sort(function(a,b){ return b.remainAzn-a.remainAzn; })
+    .map(function(r){ return {sku:r.sku, name:r.name, remain:r.beRemain+r.khRemain, value:r.remainAzn, beRemain:r.beRemain, khRemain:r.khRemain}; });
+
+  function fmt(n, dec) {
+    if (n === null || n === undefined) return "&mdash;";
+    dec = dec === undefined ? 2 : dec;
+    var neg = n < 0; n = Math.abs(n);
+    var s = n.toFixed(dec);
+    var parts = s.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    var out = parts.join(",");
+    return (neg ? "-" : "") + out;
+  }
+
+  var tooltip = document.getElementById("tooltip");
+  function showTooltip(x, y, html) {
+    tooltip.innerHTML = html;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+    tooltip.classList.add("show");
+  }
+  function hideTooltip() { tooltip.classList.remove("show"); }
+
+  var svgNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs) {
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  /* ---------- trend chart (2026 solid vs 2025 dashed) ---------- */
+  function renderTrend(svg, series, colorVar) {
+    var W = 640, H = 210, padL = 44, padR = 10, padT = 14, padB = 26;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = 12;
+    var allVals = series.y2025.concat(series.y2026.filter(function (v) { return v !== null; }));
+    var maxV = Math.max.apply(null, allVals) * 1.18;
+
+    function x(i) { return padL + (plotW * i) / (n - 1); }
+    function y(v) { return padT + plotH - (v / maxV) * plotH; }
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var steps = 4;
+    for (var g = 0; g <= steps; g++) {
+      var gv = (maxV / steps) * g;
+      var gy = y(gv);
+      svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: gy, y2: gy, stroke: "var(--line)", "stroke-width": 1 }));
+      var lbl = el("text", { x: padL - 8, y: gy + 3, "text-anchor": "end", "font-size": 9.5, fill: "var(--ink-muted)" });
+      lbl.textContent = gv >= 1000 ? (gv / 1000).toFixed(0) + "k" : gv.toFixed(0);
+      svg.appendChild(lbl);
+    }
+    for (var m = 0; m < n; m++) {
+      if (m % 2 !== 0) continue;
+      var lx = el("text", { x: x(m), y: H - 8, "text-anchor": "middle", "font-size": 9.5, fill: "var(--ink-muted)" });
+      lx.textContent = months[m];
+      svg.appendChild(lx);
+    }
+
+    var d25 = "M " + series.y2025.map(function (v, i) { return x(i) + " " + y(v); }).join(" L ");
+    svg.appendChild(el("path", { d: d25, fill: "none", stroke: "var(--ink-muted)", "stroke-width": 1.6, "stroke-dasharray": "3,3" }));
+
+    var lastIdx = -1;
+    for (var i = 0; i < n; i++) if (series.y2026[i] !== null) lastIdx = i;
+    var pts26 = [];
+    for (var j = 0; j <= lastIdx; j++) pts26.push([x(j), y(series.y2026[j])]);
+    if (pts26.length) {
+      var areaD = "M " + pts26.map(function (p) { return p[0] + " " + p[1]; }).join(" L ") +
+                  " L " + pts26[pts26.length - 1][0] + " " + y(0) + " L " + pts26[0][0] + " " + y(0) + " Z";
+      svg.appendChild(el("path", { d: areaD, fill: colorVar, opacity: 0.14, stroke: "none" }));
+      var lineD = "M " + pts26.map(function (p) { return p[0] + " " + p[1]; }).join(" L ");
+      svg.appendChild(el("path", { d: lineD, fill: "none", stroke: colorVar, "stroke-width": 2.4, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+      var last = pts26[pts26.length - 1];
+      svg.appendChild(el("circle", { cx: last[0], cy: last[1], r: 4, fill: colorVar, stroke: "var(--surface)", "stroke-width": 2 }));
+      var valLbl = el("text", { x: Math.min(last[0] + 6, W - 46), y: last[1] - 8, "font-size": 11, "font-weight": 700, fill: "var(--ink)" });
+      valLbl.textContent = fmt(series.y2026[lastIdx], 0);
+      svg.appendChild(valLbl);
+    }
+
+    for (var k = 0; k < n; k++) {
+      var hit = el("rect", { x: x(k) - (plotW / n) / 2, y: padT, width: plotW / n, height: plotH, fill: "transparent", cursor: "pointer" });
+      (function (idx) {
+        hit.addEventListener("mousemove", function (evt) {
+          var v26 = series.y2026[idx], v25 = series.y2025[idx];
+          var html = '<div class="t-title">' + months[idx] + '</div>';
+          html += '<div class="t-row"><span class="t-dot" style="background:' + colorVar + '"></span>2026: ' +
+                  (v26 === null ? "нет данных" : fmt(v26, 2) + " AZN") + '</div>';
+          html += '<div class="t-row"><span class="t-dot" style="background:var(--ink-muted)"></span>2025: ' + fmt(v25, 2) + " AZN</div>";
+          showTooltip(evt.clientX, evt.clientY, html);
+        });
+        hit.addEventListener("mouseleave", hideTooltip);
+      })(k);
+      svg.appendChild(hit);
+    }
+  }
+
+  renderTrend(document.getElementById("chart-be"), data.be, "var(--be)");
+  renderTrend(document.getElementById("chart-kh"), data.kh, "var(--kh)");
+
+  /* ---------- yearly grouped bar ---------- */
+  function renderYearly(svg) {
+    var W = 1000, H = 300, padL = 60, padR = 20, padT = 20, padB = 34;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var years = yearly.years;
+    var maxV = Math.max.apply(null, yearly.be.concat(yearly.kh)) * 1.2;
+    var groupW = plotW / years.length;
+    var barW = groupW * 0.28;
+    var gap = 6;
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var steps = 4;
+    for (var g = 0; g <= steps; g++) {
+      var gv = (maxV / steps) * g;
+      var gy = padT + plotH - (gv / maxV) * plotH;
+      svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: gy, y2: gy, stroke: "var(--line)", "stroke-width": 1 }));
+      var lbl = el("text", { x: padL - 10, y: gy + 3, "text-anchor": "end", "font-size": 11, fill: "var(--ink-muted)" });
+      lbl.textContent = (gv / 1000).toFixed(0) + "k";
+      svg.appendChild(lbl);
+    }
+
+    years.forEach(function (yr, i) {
+      var cx = padL + groupW * i + groupW / 2;
+      var beV = yearly.be[i], khV = yearly.kh[i];
+      var beH = (beV / maxV) * plotH, khH = (khV / maxV) * plotH;
+      var beX = cx - barW - gap / 2, khX = cx + gap / 2;
+      var baseY = padT + plotH;
+
+      var beBar = el("rect", { x: beX, y: baseY - beH, width: barW, height: beH, rx: 3, fill: "var(--be)", cursor: "pointer" });
+      var khBar = el("rect", { x: khX, y: baseY - khH, width: barW, height: khH, rx: 3, fill: "var(--kh)", cursor: "pointer" });
+
+      beBar.addEventListener("mousemove", function (evt) {
+        showTooltip(evt.clientX, evt.clientY, '<div class="t-title">BE &middot; ' + yr + '</div><div class="t-row"><span class="t-dot" style="background:var(--be)"></span>' + fmt(beV, 2) + " AZN</div>");
+      });
+      beBar.addEventListener("mouseleave", hideTooltip);
+      khBar.addEventListener("mousemove", function (evt) {
+        showTooltip(evt.clientX, evt.clientY, '<div class="t-title">KH &middot; ' + yr + '</div><div class="t-row"><span class="t-dot" style="background:var(--kh)"></span>' + fmt(khV, 2) + " AZN</div>");
+      });
+      khBar.addEventListener("mouseleave", hideTooltip);
+
+      svg.appendChild(beBar);
+      svg.appendChild(khBar);
+
+      var beLbl = el("text", { x: beX + barW / 2, y: baseY - beH - 8, "text-anchor": "middle", "font-size": 11.5, "font-weight": 700, fill: "var(--ink)" });
+      beLbl.textContent = (beV / 1000).toFixed(0) + "k";
+      svg.appendChild(beLbl);
+      var khLbl = el("text", { x: khX + barW / 2, y: baseY - khH - 8, "text-anchor": "middle", "font-size": 11.5, "font-weight": 700, fill: "var(--ink)" });
+      khLbl.textContent = (khV / 1000).toFixed(0) + "k";
+      svg.appendChild(khLbl);
+
+      var yrLbl = el("text", { x: cx, y: H - 10, "text-anchor": "middle", "font-size": 12.5, "font-weight": 600, fill: "var(--ink-2)" });
+      yrLbl.textContent = yr;
+      svg.appendChild(yrLbl);
+    });
+  }
+  renderYearly(document.getElementById("chart-yearly"));
+
+  /* ---------- monthly by-client table (2025 vs 2026, YoY) ---------- */
+  function renderMonthlyTable(tableEl, series) {
+    var head = "<thead><tr><th>Месяц</th><th>2025, AZN</th><th>2026, AZN</th><th>YoY</th></tr></thead>";
+    var rows = "";
+    for (var i = 0; i < 12; i++) {
+      var v25 = series.y2025[i];
+      var v26 = series.y2026[i];
+      var yoy = "&mdash;";
+      if (v26 !== null && v25) {
+        var pct = (v26 / v25 - 1) * 100;
+        var cls = pct >= 0 ? "up" : "down";
+        var arrow = pct >= 0 ? "&#9650;" : "&#9660;";
+        yoy = '<span style="color:var(' + (pct >= 0 ? "--good" : "--critical") + '); font-weight:700;">' + arrow + ' ' + fmt(Math.abs(pct), 1) + '%</span>';
+      }
+      rows += "<tr><td>" + months[i] + "</td>" +
+        '<td class="mono">' + fmt(v25, 2) + "</td>" +
+        '<td class="mono">' + (v26 === null ? '<span style="color:var(--ink-muted);">&mdash;</span>' : fmt(v26, 2)) + "</td>" +
+        "<td>" + yoy + "</td></tr>";
+    }
+    var sum25 = series.y2025.reduce(function (a, b) { return a + b; }, 0);
+    var sum26 = series.y2026.reduce(function (a, b) { return a + (b || 0); }, 0);
+    rows += '<tr style="font-weight:700; background:var(--surface-2);"><td>Итого (Янв&ndash;Авг)</td>' +
+      '<td class="mono">' + fmt(series.y2025.slice(0, 8).reduce(function (a, b) { return a + b; }, 0), 2) + "</td>" +
+      '<td class="mono">' + fmt(sum26, 2) + "</td><td></td></tr>";
+    tableEl.innerHTML = head + "<tbody>" + rows + "</tbody>";
+  }
+  renderMonthlyTable(document.getElementById("monthly-be-table"), data.be);
+  renderMonthlyTable(document.getElementById("monthly-kh-table"), data.kh);
+
+  /* ---------- SKU ranking (top 10, stacked bars, toggle ship/rrp) ---------- */
+  var skuMetric = "ship";
+  function renderSkuRanking(container) {
+    container.innerHTML = "";
+    var top = sku.slice().sort(function (a, b) { return b[skuMetric] - a[skuMetric]; }).slice(0, 10);
+    var maxV = top[0][skuMetric];
+    top.forEach(function (row, i) {
+      var val = row[skuMetric];
+      var beShare = row.be / (row.be + row.kh || 1);
+      var beVal = val * beShare;
+      var khVal = val - beVal;
+      var bePct = (beVal / maxV) * 100;
+      var khPct = (khVal / maxV) * 100;
+
+      var rowEl = document.createElement("div");
+      rowEl.className = "rank-row";
+      rowEl.innerHTML =
+        '<span class="rank-num">' + (i + 1) + '</span>' +
+        '<span class="rank-sku mono">' + row.sku + '</span>' +
+        '<span class="rank-label" title="' + row.name + '">' + row.name + '</span>' +
+        '<span class="rank-bar-track">' +
+          '<span class="rank-seg be" style="width:' + bePct.toFixed(1) + '%"></span>' +
+          '<span class="rank-seg kh" style="width:' + khPct.toFixed(1) + '%"></span>' +
+        '</span>' +
+        '<span class="rank-total mono">' + fmt(val, 0) + '</span>';
+      container.appendChild(rowEl);
+    });
+  }
+  renderSkuRanking(document.getElementById("sku-ranking"));
+
+  var toggleEl = document.getElementById("sku-metric-toggle");
+  toggleEl.addEventListener("click", function (evt) {
+    var btn = evt.target.closest(".chip-btn");
+    if (!btn) return;
+    skuMetric = btn.getAttribute("data-metric");
+    Array.prototype.forEach.call(toggleEl.querySelectorAll(".chip-btn"), function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    renderSkuRanking(document.getElementById("sku-ranking"));
+  });
+
+  /* ---------- frozen capital ranking (all dead-stock SKU, single-hue) ---------- */
+  function renderFrozenRanking(container) {
+    var maxV = frozen[0].value;
+    var totalShip = 0;
+    frozen.forEach(function (row) { totalShip += row.value; });
+    frozen.forEach(function (row) {
+      var pct = (row.value / maxV) * 100;
+      var rowEl = document.createElement("div");
+      rowEl.className = "rank-row";
+      rowEl.innerHTML =
+        '<span class="rank-sku mono">' + row.sku + '</span>' +
+        '<span class="rank-label" title="' + row.name + '">' + row.name + '</span>' +
+        '<span style="font-size:11px; color:var(--ink-muted); width:112px; flex:none;">BE ' + row.beRemain + ' &middot; KH ' + row.khRemain + '</span>' +
+        '<span class="rank-bar-track">' +
+          '<span class="rank-seg frozen" style="width:' + pct.toFixed(1) + '%"></span>' +
+        '</span>' +
+        '<span class="rank-total mono">' + fmt(row.value, 0) + '</span>';
+      container.appendChild(rowEl);
+    });
+    var shipEl = document.getElementById("frozen-total-ship");
+    var rrpEl = document.getElementById("frozen-total-rrp");
+    if (shipEl) shipEl.textContent = fmt(totalShip, 2);
+    if (rrpEl) rrpEl.textContent = fmt(totalShip / 0.7, 2);
+  }
+  renderFrozenRanking(document.getElementById("frozen-ranking"));
+
+  /* ---------- SKU table (full catalog) ---------- */
+  function renderSkuTable(tbody) {
+    var rows = sku.slice().sort(function (a, b) { return b.ship - a.ship; });
+    rows.forEach(function (row, i) {
+      var tr = document.createElement("tr");
+      var status = row.vne
+        ? '<span class="badge" style="background:var(--frozen-bg); color:var(--frozen);">вне матрицы</span>'
+        : '<span class="badge" style="background:var(--good-bg); color:var(--good);">матрица</span>';
+      var marginCell = row.hasCost && (row.be + row.kh) > 0 ? fmt(row.margin, 2) : (row.hasCost ? "&mdash;" : "нет данных");
+      tr.innerHTML =
+        "<td>" + (i + 1) + "</td>" +
+        "<td>" + row.sku + "</td>" +
+        "<td>" + row.name + "</td>" +
+        "<td>" + status + "</td>" +
+        '<td class="mono">' + row.be + "</td>" +
+        '<td class="mono">' + row.kh + "</td>" +
+        '<td class="mono">' + (row.ship > 0 ? fmt(row.ship, 2) : "&mdash;") + "</td>" +
+        '<td class="mono">' + (row.rrp > 0 ? fmt(row.rrp, 2) : "&mdash;") + "</td>" +
+        '<td class="mono">' + row.beRemain + "</td>" +
+        '<td class="mono">' + row.khRemain + "</td>" +
+        '<td class="mono">' + fmt(row.remainAzn, 2) + "</td>" +
+        '<td class="mono">' + fmt(row.cost, 2) + "</td>" +
+        '<td class="mono">' + marginCell + "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+  renderSkuTable(document.getElementById("sku-tbody"));
+
+  window.addEventListener("scroll", hideTooltip, { passive: true });
+})();
+</script>
+
+</body></html>
