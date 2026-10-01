@@ -197,6 +197,28 @@ tr.clk{cursor:pointer} tr.clk:hover td{background:var(--orange-wash)!important}
 .mbars i{display:block;width:100%;border-radius:2px 2px 0 0;min-height:1px}
 .mbars em{font-style:normal;color:var(--ink);font-weight:700}
 @media (max-width:700px){.mh{grid-template-columns:1fr}.mh img,.mh .noimg{width:100%;height:220px}.cc{grid-template-columns:1fr}}
+/* mobile */
+.grid>*,.wrap>*,section>*,.card>*{min-width:0}
+.tw{max-width:100%}
+html,body{overflow-x:hidden}
+@media (max-width:640px){
+  .top-in{flex-wrap:wrap;gap:8px 12px}
+  .logo{flex:1}
+  .nav{order:3;flex-basis:100%}
+  section{scroll-margin-top:120px}
+  .hero-txt{padding:22px 18px 30px}
+  .hero p{font-size:13.5px}
+  .kpi .v{font-size:22px}
+  h2{font-size:20px}
+  .sh{align-items:flex-start}
+  .card{padding:14px}
+  .t{font-size:12px}
+  .t td,.t th{padding:6px 8px}
+  .t td.nm{min-width:150px}
+  .split{flex-wrap:wrap}
+  .ann div{flex-basis:100%}
+}
+@media (max-width:520px){.g6,.g4{grid-template-columns:minmax(0,1fr)}.g3{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <style>body{margin:0}</style>
